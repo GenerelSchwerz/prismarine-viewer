@@ -5,8 +5,10 @@ const { dispose3 } = require('./dispose')
 function getMesh (primitive, camera) {
   if (primitive.type === 'line') {
     const color = primitive.color ? primitive.color : 0xff0000
+    const lineWidth = primitive.lineWidth ? primitive.lineWidth : 8
+    const opacity = primitive.opacity ? primitive.opacity : 1
     const resolution = new THREE.Vector2(window.innerWidth / camera.zoom, window.innerHeight / camera.zoom)
-    const material = new MeshLineMaterial({ color, resolution, sizeAttenuation: false, lineWidth: 8 })
+    const material = new MeshLineMaterial({ color, resolution, sizeAttenuation: false, lineWidth, opacity })
 
     const points = []
     for (const p of primitive.points) {
@@ -19,6 +21,9 @@ function getMesh (primitive, camera) {
   } else if (primitive.type === 'boxgrid') {
     const color = primitive.color ? primitive.color : 'aqua'
 
+     // keeping capitalization consistent with the rest of the code
+    const linewidth = primitive.lineWidth ? primitive.lineWidth : 8
+
     const sx = primitive.end.x - primitive.start.x
     const sy = primitive.end.y - primitive.start.y
     const sz = primitive.end.z - primitive.start.z
@@ -27,7 +32,7 @@ function getMesh (primitive, camera) {
     boxGeometry.attributes.positionStart = boxGeometry.attributes.position.clone()
 
     const gridGeometry = GridBoxGeometry(boxGeometry, false)
-    const grid = new THREE.LineSegments(gridGeometry, new THREE.LineBasicMaterial({ color }))
+    const grid = new THREE.LineSegments(gridGeometry, new THREE.LineBasicMaterial({ color, linewidth }))
     grid.position.x = primitive.start.x + sx / 2
     grid.position.y = primitive.start.y + sy / 2
     grid.position.z = primitive.start.z + sz / 2
