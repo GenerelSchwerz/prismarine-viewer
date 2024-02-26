@@ -1,8 +1,9 @@
 const THREE = require('three')
-const { MeshLine, MeshLineMaterial } = require('three.meshline')
+const { MeshLineGeometry, MeshLineMaterial } = require('meshline')
 const { dispose3 } = require('./dispose')
 
 function getMesh (primitive, camera) {
+
   if (primitive.type === 'line') {
     const color = primitive.color ? primitive.color : 0xff0000
     const lineWidth = primitive.lineWidth ? primitive.lineWidth : 8
@@ -15,24 +16,43 @@ function getMesh (primitive, camera) {
       points.push(p.x, p.y, p.z)
     }
 
-    const line = new MeshLine()
+    const line = new MeshLineGeometry()
     line.setPoints(points)
     return new THREE.Mesh(line, material)
+  } else if (primitive.type === 'box') {
+    const color = primitive.color ? primitive.color : 'aqua'
+
+    const sx = primitive.end.x - primitive.start.x
+    const sy = primitive.end.y - primitive.start.y
+    const sz = primitive.end.z - primitive.start.z
+
+    const geometry = new THREE.BoxGeometry(sx, sy, sz)
+    const material = new THREE.MeshBasicMaterial({ color })
+    const cube = new THREE.Mesh(geometry, material)
+    cube.position.x = primitive.start.x + sx / 2
+    cube.position.y = primitive.start.y + sy / 2
+    cube.position.z = primitive.start.z + sz / 2
+
+    return cube
+  
   } else if (primitive.type === 'boxgrid') {
     const color = primitive.color ? primitive.color : 'aqua'
 
      // keeping capitalization consistent with the rest of the code
     const linewidth = primitive.lineWidth ? primitive.lineWidth : 8
 
+    const opacity = primitive.opacity ? primitive.opacity : 1
+
     const sx = primitive.end.x - primitive.start.x
     const sy = primitive.end.y - primitive.start.y
     const sz = primitive.end.z - primitive.start.z
 
-    const boxGeometry = new THREE.BoxBufferGeometry(sx, sy, sz, sx, sy, sz)
+    const boxGeometry = new THREE.BoxGeometry(sx, sy, sz, sx, sy, sz)
     boxGeometry.attributes.positionStart = boxGeometry.attributes.position.clone()
 
     const gridGeometry = GridBoxGeometry(boxGeometry, false)
-    const grid = new THREE.LineSegments(gridGeometry, new THREE.LineBasicMaterial({ color, linewidth }))
+    const grid = new THREE.LineSegments(gridGeometry, new MeshLineMaterial({ color, lineWidth: linewidth, linewidth, opacity }))
+    // const grid = new THREE.LineSegments(gridGeometry, new THREE.LineBasicMaterial({ color, linewidth }))
     grid.position.x = primitive.start.x + sx / 2
     grid.position.y = primitive.start.y + sy / 2
     grid.position.z = primitive.start.z + sz / 2
@@ -82,13 +102,13 @@ class Primitives {
 }
 
 function GridBoxGeometry (geometry, independent) {
-  if (!(geometry instanceof THREE.BoxBufferGeometry)) {
-    console.log("GridBoxGeometry: the parameter 'geometry' has to be of the type THREE.BoxBufferGeometry")
+  if (!(geometry instanceof THREE.BoxGeometry)) {
+    console.log("GridBoxGeometry: the parameter 'geometry' has to be of the type THREE.BoxGeometry")
     return geometry
   }
   independent = independent !== undefined ? independent : false
 
-  const newGeometry = new THREE.BoxBufferGeometry()
+  const newGeometry = new THREE.BoxGeometry()
   const position = geometry.attributes.position
   newGeometry.attributes.position = independent === false ? position : position.clone()
 
